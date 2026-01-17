@@ -1,48 +1,124 @@
-import { useState } from 'react';
-import { View, TextInput, Text, TextInputProps } from 'react-native';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useRef, useState } from "react";
+import { Pressable, Text, TextInput, TextInputProps, View } from "react-native";
 
 interface InputProps extends TextInputProps {
-    label?: string;
-    error?: string;
-    containerClassName?: string;
+  label?: string;
+  error?: string;
+  containerClassName?: string;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
 }
 
 export function Input({
-    label,
-    error,
-    containerClassName = '',
-    className = '',
-    ...props
+  label,
+  error,
+  containerClassName = "",
+  leftIcon,
+  rightIcon,
+  style,
+  ...props
 }: InputProps) {
-    const colorScheme = useColorScheme() ?? 'light';
-    const isDark = colorScheme === 'dark';
-    const [isFocused, setIsFocused] = useState(false);
+  const colorScheme = useColorScheme() ?? "light";
+  const isDark = colorScheme === "dark";
+  const [isFocused, setIsFocused] = useState(false);
+  const inputRef = useRef<TextInput>(null);
 
-    const borderColor = error
-        ? 'border-red-500'
-        : isFocused
-            ? 'border-cyan-600'
-            : isDark
-                ? 'border-gray-700'
-                : 'border-gray-300';
+  const getBorderColor = () => {
+    if (error) return "#ef4444";
+    if (isFocused) return isDark ? "#2dd4bf" : "#14b8a6";
+    return isDark ? "#475569" : "#e2e8f0";
+  };
 
-    return (
-        <View className={`mb-4 ${containerClassName}`}>
-            {label && (
-                <Text className={`text-sm font-medium mb-2 ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>
-                    {label}
-                </Text>
-            )}
-            <TextInput
-                className={`py-3.5 px-4 rounded-xl text-base border-2 ${isDark ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-900'
-                    } ${borderColor} ${className}`}
-                placeholderTextColor={isDark ? '#666' : '#999'}
-                onFocus={() => setIsFocused(true)}
-                onBlur={() => setIsFocused(false)}
-                {...props}
-            />
-            {error && <Text className="text-red-500 text-xs mt-1">{error}</Text>}
-        </View>
-    );
+  const getBackgroundColor = () => {
+    if (isDark) return "#1e293b";
+    return isFocused ? "#ffffff" : "#f8fafc";
+  };
+
+  const handleContainerPress = () => {
+    inputRef.current?.focus();
+  };
+
+  return (
+    <View style={{ marginBottom: 20 }} className={containerClassName}>
+      {label && (
+        <Text
+          style={{
+            fontSize: 14,
+            fontWeight: "600",
+            marginBottom: 10,
+            color: isDark ? "#e2e8f0" : "#334155",
+          }}
+        >
+          {label}
+        </Text>
+      )}
+      <Pressable
+        onPress={handleContainerPress}
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          borderRadius: 16,
+          borderWidth: 2,
+          borderColor: getBorderColor(),
+          backgroundColor: getBackgroundColor(),
+          ...(isFocused && !error
+            ? {
+                shadowColor: "#14b8a6",
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: 0.15,
+                shadowRadius: 8,
+                elevation: 4,
+              }
+            : {}),
+        }}
+      >
+        {leftIcon && (
+          <View style={{ paddingLeft: 16 }} pointerEvents="none">
+            {leftIcon}
+          </View>
+        )}
+        <TextInput
+          ref={inputRef}
+          style={[
+            {
+              flex: 1,
+              paddingVertical: 16,
+              paddingHorizontal: leftIcon ? 12 : 16,
+              fontSize: 16,
+              color: isDark ? "#ffffff" : "#0f172a",
+            },
+            style,
+          ]}
+          placeholderTextColor={isDark ? "#64748b" : "#94a3b8"}
+          onFocus={(e) => {
+            setIsFocused(true);
+            props.onFocus?.(e);
+          }}
+          onBlur={(e) => {
+            setIsFocused(false);
+            props.onBlur?.(e);
+          }}
+          {...props}
+        />
+        {rightIcon && (
+          <View style={{ paddingRight: 16 }} pointerEvents="none">
+            {rightIcon}
+          </View>
+        )}
+      </Pressable>
+      {error && (
+        <Text
+          style={{
+            color: "#ef4444",
+            fontSize: 12,
+            marginTop: 6,
+            marginLeft: 4,
+          }}
+        >
+          {error}
+        </Text>
+      )}
+    </View>
+  );
 }

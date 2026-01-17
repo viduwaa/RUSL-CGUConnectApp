@@ -1,0 +1,384 @@
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
+import {
+  Briefcase,
+  CheckCircle,
+  ChevronRight,
+  Clock,
+  Eye,
+  Plus,
+  Search,
+  TrendingUp,
+  Users
+} from "lucide-react-native";
+import React, { useState } from "react";
+import {
+  Dimensions,
+  Image,
+  ScrollView,
+  StatusBar,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+const { width } = Dimensions.get("window");
+const CARD_WIDTH = (width - 48 - 12) / 2;
+
+// Quick Actions for Employers
+const quickActions = [
+  { id: "1", name: "Post a Job", icon: Plus, color: "#8B2635" },
+  { id: "2", name: "View Applicants", icon: Users, color: "#2196F3" },
+  { id: "3", name: "My Job Posts", icon: Briefcase, color: "#4CAF50" },
+  { id: "4", name: "Analytics", icon: TrendingUp, color: "#FF9800" },
+];
+
+// Recent Job Posts
+const recentJobPosts = [
+  {
+    id: "1",
+    title: "Software Engineer",
+    applicants: 24,
+    views: 156,
+    status: "active",
+    postedDate: "2 days ago",
+  },
+  {
+    id: "2",
+    title: "UI/UX Designer",
+    applicants: 18,
+    views: 98,
+    status: "active",
+    postedDate: "5 days ago",
+  },
+  {
+    id: "3",
+    title: "Project Manager",
+    applicants: 12,
+    views: 67,
+    status: "closed",
+    postedDate: "1 week ago",
+  },
+];
+
+// Top Applicants
+const topApplicants = [
+  {
+    id: "1",
+    name: "Kamal Perera",
+    position: "Software Engineer",
+    avatar:
+      "https://api.dicebear.com/7.x/avataaars/png?seed=kamal&backgroundColor=b6e3f4",
+    matchScore: 95,
+  },
+  {
+    id: "2",
+    name: "Nimal Silva",
+    position: "UI/UX Designer",
+    avatar:
+      "https://api.dicebear.com/7.x/avataaars/png?seed=nimal&backgroundColor=ffd5dc",
+    matchScore: 88,
+  },
+  {
+    id: "3",
+    name: "Sithara Fernando",
+    position: "Software Engineer",
+    avatar:
+      "https://api.dicebear.com/7.x/avataaars/png?seed=sithara&backgroundColor=c0aede",
+    matchScore: 82,
+  },
+];
+
+// Quick Action Card Component
+interface QuickActionCardProps {
+  action: (typeof quickActions)[0];
+  onPress: () => void;
+}
+
+const QuickActionCard = ({ action, onPress }: QuickActionCardProps) => {
+  const IconComponent = action.icon;
+  return (
+    <TouchableOpacity
+      className="rounded-2xl overflow-hidden shadow-sm"
+      style={{ width: CARD_WIDTH, backgroundColor: "#FFE8EC" }}
+      onPress={onPress}
+      activeOpacity={0.8}
+    >
+      <View className="h-20 justify-center items-center bg-white/60">
+        <View
+          className="w-12 h-12 rounded-full justify-center items-center"
+          style={{ backgroundColor: `${action.color}20` }}
+        >
+          <IconComponent size={24} color={action.color} />
+        </View>
+      </View>
+      <View className="py-2.5 px-3" style={{ backgroundColor: action.color }}>
+        <Text
+          className="text-[13px] font-semibold text-white text-center"
+          numberOfLines={1}
+        >
+          {action.name}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+};
+
+// Job Post Card Component
+interface JobPostCardProps {
+  job: (typeof recentJobPosts)[0];
+  onPress: () => void;
+}
+
+const JobPostCard = ({ job, onPress }: JobPostCardProps) => (
+  <TouchableOpacity
+    className="bg-white rounded-2xl p-4 mb-3 shadow-sm"
+    onPress={onPress}
+    activeOpacity={0.8}
+  >
+    <View className="flex-row justify-between items-start mb-3">
+      <View className="flex-1">
+        <Text className="text-base font-semibold text-gray-900 mb-1">
+          {job.title}
+        </Text>
+        <View className="flex-row items-center gap-1">
+          <Clock size={12} color="#999" />
+          <Text className="text-xs text-gray-400">{job.postedDate}</Text>
+        </View>
+      </View>
+      <View
+        className={`px-2 py-1 rounded-full ${job.status === "active" ? "bg-green-100" : "bg-gray-100"}`}
+      >
+        <Text
+          className={`text-xs font-medium ${job.status === "active" ? "text-green-600" : "text-gray-500"}`}
+        >
+          {job.status === "active" ? "Active" : "Closed"}
+        </Text>
+      </View>
+    </View>
+    <View className="flex-row gap-4">
+      <View className="flex-row items-center gap-1.5">
+        <Users size={16} color="#8B2635" />
+        <Text className="text-sm text-gray-600">
+          {job.applicants} applicants
+        </Text>
+      </View>
+      <View className="flex-row items-center gap-1.5">
+        <Eye size={16} color="#2196F3" />
+        <Text className="text-sm text-gray-600">{job.views} views</Text>
+      </View>
+    </View>
+  </TouchableOpacity>
+);
+
+// Applicant Card Component
+interface ApplicantCardProps {
+  applicant: (typeof topApplicants)[0];
+  onPress: () => void;
+}
+
+const ApplicantCard = ({ applicant, onPress }: ApplicantCardProps) => (
+  <TouchableOpacity
+    className="bg-white rounded-2xl p-4 mr-3 shadow-sm items-center"
+    style={{ width: 140 }}
+    onPress={onPress}
+    activeOpacity={0.8}
+  >
+    <Image
+      source={{ uri: applicant.avatar }}
+      className="w-14 h-14 rounded-full mb-2"
+    />
+    <Text
+      className="text-sm font-semibold text-gray-900 text-center mb-0.5"
+      numberOfLines={1}
+    >
+      {applicant.name}
+    </Text>
+    <Text className="text-xs text-gray-500 text-center mb-2" numberOfLines={1}>
+      {applicant.position}
+    </Text>
+    <View
+      className="flex-row items-center gap-1 px-2 py-1 rounded-full"
+      style={{ backgroundColor: "#E8F5E9" }}
+    >
+      <CheckCircle size={12} color="#4CAF50" />
+      <Text className="text-xs font-medium text-green-600">
+        {applicant.matchScore}% match
+      </Text>
+    </View>
+  </TouchableOpacity>
+);
+
+export default function EmployerHomeScreen() {
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleQuickAction = (actionId: string) => {
+    switch (actionId) {
+      case "1":
+        // Navigate to post job
+        break;
+      case "2":
+        // Navigate to view applicants
+        break;
+      case "3":
+        router.push("/(employer)/jobs" as any);
+        break;
+      case "4":
+        // Navigate to analytics
+        break;
+    }
+  };
+
+  return (
+    <View className="flex-1 bg-gray-100">
+      <StatusBar barStyle="light-content" backgroundColor="#8B2635" />
+
+      {/* Header with Gradient */}
+      <LinearGradient
+        colors={["#8B2635", "#7D1F2E", "#6B1A27"]}
+        className="pb-5"
+      >
+        <SafeAreaView edges={["top"]} className="px-4">
+
+          {/* Welcome Card */}
+          <View className="flex-row items-center bg-white rounded-2xl p-4 shadow-lg">
+            <Image
+              source={{
+                uri: "https://api.dicebear.com/7.x/initials/png?seed=COMP&backgroundColor=8B2635",
+              }}
+              className="w-14 h-14 rounded-xl mr-3.5"
+            />
+            <View className="flex-1">
+              <Text className="text-lg font-semibold text-gray-900 mb-1">
+                Welcome, Company Name
+              </Text>
+              <Text className="text-sm text-gray-500">
+                Find the best talent for your team!
+              </Text>
+            </View>
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
+
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ padding: 16 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Search Bar */}
+        <View className="flex-row items-center bg-white rounded-xl px-4 py-3.5 mb-6 border border-gray-200 gap-3">
+          <Search size={20} color="#999" />
+          <TextInput
+            className="flex-1 text-base text-gray-800"
+            placeholder="Search candidates..."
+            placeholderTextColor="#999"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+
+        {/* Quick Actions Section */}
+        <View className="mb-6">
+          <View className="flex-row justify-between items-center mb-4">
+            <Text className="text-xl font-bold text-gray-900">
+              Quick Actions
+            </Text>
+          </View>
+
+          <View className="flex-row flex-wrap gap-3">
+            {quickActions.map((action) => (
+              <QuickActionCard
+                key={action.id}
+                action={action}
+                onPress={() => handleQuickAction(action.id)}
+              />
+            ))}
+          </View>
+        </View>
+
+        {/* Stats Overview */}
+        <View className="bg-white rounded-2xl p-4 mb-6 shadow-sm">
+          <Text className="text-lg font-bold text-gray-900 mb-4">Overview</Text>
+          <View className="flex-row justify-between">
+            <View className="items-center flex-1">
+              <Text className="text-2xl font-bold" style={{ color: "#8B2635" }}>
+                12
+              </Text>
+              <Text className="text-xs text-gray-500 mt-1">Active Jobs</Text>
+            </View>
+            <View className="w-px bg-gray-200" />
+            <View className="items-center flex-1">
+              <Text className="text-2xl font-bold" style={{ color: "#2196F3" }}>
+                54
+              </Text>
+              <Text className="text-xs text-gray-500 mt-1">Applicants</Text>
+            </View>
+            <View className="w-px bg-gray-200" />
+            <View className="items-center flex-1">
+              <Text className="text-2xl font-bold" style={{ color: "#4CAF50" }}>
+                8
+              </Text>
+              <Text className="text-xs text-gray-500 mt-1">Interviews</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Top Applicants Section */}
+        <View className="mb-6">
+          <View className="flex-row justify-between items-center mb-4">
+            <Text className="text-xl font-bold text-gray-900">
+              Top Applicants
+            </Text>
+            <TouchableOpacity className="flex-row items-center gap-1">
+              <Text className="text-sm text-gray-500 font-medium">
+                View all
+              </Text>
+              <ChevronRight size={16} color="#666" />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingRight: 16 }}
+          >
+            {topApplicants.map((applicant) => (
+              <ApplicantCard
+                key={applicant.id}
+                applicant={applicant}
+                onPress={() => {}}
+              />
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Recent Job Posts Section */}
+        <View className="mb-6">
+          <View className="flex-row justify-between items-center mb-4">
+            <Text className="text-xl font-bold text-gray-900">
+              Recent Job Posts
+            </Text>
+            <TouchableOpacity
+              className="flex-row items-center gap-1"
+              onPress={() => router.push("/(employer)/jobs" as any)}
+            >
+              <Text className="text-sm text-gray-500 font-medium">
+                View all
+              </Text>
+              <ChevronRight size={16} color="#666" />
+            </TouchableOpacity>
+          </View>
+
+          {recentJobPosts.map((job) => (
+            <JobPostCard key={job.id} job={job} onPress={() => {}} />
+          ))}
+        </View>
+
+        <View className="h-5" />
+      </ScrollView>
+    </View>
+  );
+}
