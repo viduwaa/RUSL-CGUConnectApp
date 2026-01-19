@@ -330,11 +330,19 @@ const MessageBubble = ({ message }: MessageBubbleProps) => (
 interface ChatScreenProps {
   conversationId: string;
   onBack: () => void;
+  newUser?: {
+    id: string;
+    name: string;
+    avatar: string;
+    isOnline: boolean;
+    role?: string;
+  } | null;
 }
 
 export default function ChatScreen({
   conversationId,
   onBack,
+  newUser,
 }: ChatScreenProps) {
   const [messageText, setMessageText] = useState("");
   const [messages, setMessages] = useState<Message[]>(
@@ -342,7 +350,15 @@ export default function ChatScreen({
   );
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const user = usersData[conversationId] || usersData["1"];
+  // Use newUser if provided (new conversation), otherwise lookup from existing users
+  const user: ChatUser = newUser
+    ? {
+        id: newUser.id,
+        name: newUser.name,
+        avatar: newUser.avatar,
+        isOnline: newUser.isOnline,
+      }
+    : usersData[conversationId] || usersData["1"];
 
   const handleSend = () => {
     if (messageText.trim()) {

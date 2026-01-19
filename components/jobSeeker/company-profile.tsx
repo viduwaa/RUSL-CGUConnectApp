@@ -1,24 +1,25 @@
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import {
-    ArrowLeft,
-    Briefcase,
-    Building2,
-    ChevronRight,
-    Clock,
-    Globe,
-    Heart,
-    MapPin,
-    Share2,
-    Users,
+  ArrowLeft,
+  Briefcase,
+  Building2,
+  ChevronRight,
+  Clock,
+  Globe,
+  Heart,
+  MapPin,
+  Share2,
+  Users,
 } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
-    Image,
-    ScrollView,
-    StatusBar,
-    Text,
-    TouchableOpacity,
-    View,
+  Image,
+  ScrollView,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -135,31 +136,31 @@ const companiesData: Record<
   },
 };
 
-// Sample jobs for company
+// Sample jobs for company - using IDs that match mock-jobs.ts
 const companyJobs = [
   {
-    id: "1",
-    title: "Senior Software Engineer",
+    id: "2",
+    title: "Full Stack Software Engineer",
     type: "Full-time",
-    posted: "2 days ago",
+    posted: "1 day ago",
   },
   {
-    id: "2",
-    title: "DevOps Engineer",
-    type: "Full-time",
+    id: "5",
+    title: "Data Analyst Intern",
+    type: "Internship",
     posted: "1 week ago",
   },
   {
     id: "3",
-    title: "UI/UX Designer",
-    type: "Contract",
+    title: "Digital Marketing Manager",
+    type: "Full-time",
     posted: "3 days ago",
   },
   {
-    id: "4",
-    title: "Product Manager",
+    id: "1",
+    title: "Senior Management Accountant",
     type: "Full-time",
-    posted: "5 days ago",
+    posted: "2 days ago",
   },
 ];
 
@@ -173,9 +174,18 @@ export default function CompanyProfile({
   companyId,
   onBack,
 }: CompanyProfileProps) {
+  const router = useRouter();
   const [isFollowing, setIsFollowing] = useState(false);
 
   const company = companiesData[companyId] || companiesData["1"];
+
+  // Handle job press - navigate to job details
+  const handleJobPress = useCallback(
+    (jobId: string) => {
+      router.push(`/job-details?id=${jobId}`);
+    },
+    [router],
+  );
 
   return (
     <View className="flex-1 bg-neutral-100 absolute inset-0 z-50">
@@ -308,6 +318,8 @@ export default function CompanyProfile({
               <TouchableOpacity
                 key={job.id}
                 className={`flex-row items-center justify-between py-3.5 ${index < companyJobs.length - 1 ? "border-b border-neutral-100" : ""}`}
+                onPress={() => handleJobPress(job.id)}
+                activeOpacity={0.7}
               >
                 <View className="flex-row items-center flex-1 gap-3">
                   <Briefcase size={18} color="#8B2635" />

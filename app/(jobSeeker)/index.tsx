@@ -1,8 +1,8 @@
 import CompanyProfile from "@/components/jobSeeker/company-profile";
-import { LinearGradient } from "expo-linear-gradient";
+import { useNavigationVisibility } from "@/hooks/use-navigation-visibility";
+import { useRouter } from "expo-router";
 import {
   Bug,
-  ChevronDown,
   ChevronRight,
   Code,
   Database,
@@ -13,7 +13,7 @@ import {
   Server,
   TrendingUp,
 } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Dimensions,
   Image,
@@ -24,21 +24,75 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = (width - 48 - 12) / 2;
+const CATEGORY_CARD_WIDTH = 100;
 
-// Job Categories Data
+// Job Categories Data with keywords for filtering
 const jobCategories = [
-  { id: "1", name: "Graphic Design", icon: Palette, color: "#E91E63" },
-  { id: "2", name: "Networking", icon: Network, color: "#2196F3" },
-  { id: "3", name: "UI/UX Designing", icon: Figma, color: "#9C27B0" },
-  { id: "4", name: "QA Testing", icon: Bug, color: "#4CAF50" },
-  { id: "5", name: "DevOps", icon: Server, color: "#FF9800" },
-  { id: "6", name: "Software Dev", icon: Code, color: "#00BCD4" },
-  { id: "7", name: "Data Science", icon: Database, color: "#673AB7" },
-  { id: "8", name: "Marketing", icon: TrendingUp, color: "#F44336" },
+  {
+    id: "1",
+    name: "Graphic Design",
+    icon: Palette,
+    color: "#E91E63",
+    keywords: ["design", "graphic", "visual", "creative"],
+  },
+  {
+    id: "2",
+    name: "Networking",
+    icon: Network,
+    color: "#2196F3",
+    keywords: ["network", "infrastructure", "cisco", "telecom"],
+  },
+  {
+    id: "3",
+    name: "UI/UX Designing",
+    icon: Figma,
+    color: "#9C27B0",
+    keywords: ["ui", "ux", "user experience", "user interface", "figma"],
+  },
+  {
+    id: "4",
+    name: "QA Testing",
+    icon: Bug,
+    color: "#4CAF50",
+    keywords: ["qa", "test", "quality", "automation"],
+  },
+  {
+    id: "5",
+    name: "DevOps",
+    icon: Server,
+    color: "#FF9800",
+    keywords: ["devops", "cloud", "aws", "docker", "kubernetes"],
+  },
+  {
+    id: "6",
+    name: "Software Dev",
+    icon: Code,
+    color: "#00BCD4",
+    keywords: [
+      "software",
+      "developer",
+      "engineer",
+      "programming",
+      "full stack",
+    ],
+  },
+  {
+    id: "7",
+    name: "Data Science",
+    icon: Database,
+    color: "#673AB7",
+    keywords: ["data", "analytics", "machine learning", "ai", "analyst"],
+  },
+  {
+    id: "8",
+    name: "Marketing",
+    icon: TrendingUp,
+    color: "#F44336",
+    keywords: ["marketing", "digital", "seo", "social media", "brand"],
+  },
 ];
 
 // Trending Companies Data
@@ -111,17 +165,17 @@ const CategoryCard = ({ category, onPress }: CategoryCardProps) => {
   const IconComponent = category.icon;
   return (
     <TouchableOpacity
-      className="rounded-2xl overflow-hidden shadow-sm"
-      style={{ width: CARD_WIDTH, backgroundColor: "#FFE8EC" }}
+      className="rounded-2xl overflow-hidden shadow-sm mr-3"
+      style={{ width: CATEGORY_CARD_WIDTH, backgroundColor: "#FFE8EC" }}
       onPress={onPress}
       activeOpacity={0.8}
     >
-      <View className="h-20 justify-center items-center bg-white/60">
-        <IconComponent size={32} color={category.color} />
+      <View className="h-16 justify-center items-center bg-white/60">
+        <IconComponent size={28} color={category.color} />
       </View>
-      <View className="py-2.5 px-3" style={{ backgroundColor: category.color }}>
+      <View className="py-2 px-2" style={{ backgroundColor: category.color }}>
         <Text
-          className="text-[13px] font-semibold text-white text-center"
+          className="text-[11px] font-semibold text-white text-center"
           numberOfLines={1}
         >
           {category.name}
@@ -167,16 +221,25 @@ const CompanyCard = ({ company, onPress }: CompanyCardProps) => (
 );
 
 export default function HomeScreen() {
-  const [expandedSection, setExpandedSection] = useState<
-    "none" | "categories" | "companies"
-  >("none");
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
+  const { setNavigationVisible } = useNavigationVisibility();
 
-  const handleCategoryPress = (categoryId: string) => {
-    // TODO: Navigate to jobs by category
-    console.log("Category pressed:", categoryId);
-  };
+  // Hide navigation when viewing company profile
+  useEffect(() => {
+    setNavigationVisible(selectedCompany === null);
+  }, [selectedCompany, setNavigationVisible]);
+
+  // Navigate to category jobs page
+  const handleCategoryPress = useCallback(
+    (categoryId: string, categoryName: string) => {
+      router.push(
+        `/category-jobs?categoryId=${categoryId}&categoryName=${encodeURIComponent(categoryName)}`,
+      );
+    },
+    [router],
+  );
 
   const handleCompanyPress = (companyId: string) => {
     setSelectedCompany(companyId);
@@ -185,6 +248,16 @@ export default function HomeScreen() {
   const handleBackFromCompany = () => {
     setSelectedCompany(null);
   };
+
+  // Navigate to all categories page
+  const handleSeeAllCategories = useCallback(() => {
+    router.push("/all-categories");
+  }, [router]);
+
+  // Navigate to all companies page
+  const handleSeeAllCompanies = useCallback(() => {
+    router.push("/all-companies");
+  }, [router]);
 
   // Show company profile if a company is selected
   if (selectedCompany) {
@@ -196,54 +269,31 @@ export default function HomeScreen() {
     );
   }
 
-  const toggleSection = (section: "categories" | "companies") => {
-    setExpandedSection((prev) => (prev === section ? "none" : section));
-  };
-
-  const visibleCategories =
-    expandedSection === "categories"
-      ? jobCategories
-      : jobCategories.slice(0, 4);
-
-  const visibleCompanies =
-    expandedSection === "companies"
-      ? trendingCompanies
-      : trendingCompanies.slice(0, 4);
+  const visibleCompanies = trendingCompanies.slice(0, 6);
 
   return (
-    <View className="flex-1 bg-gray-100">
-      <StatusBar barStyle="light-content" backgroundColor="#8B2635" />
+    <View className="flex-1 bg-gray-50">
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
-      {/* Header with Gradient */}
-      <LinearGradient
-        colors={["#8B2635", "#7D1F2E", "#6B1A27"]}
-        className="pb-5"
-      >
-        <SafeAreaView edges={["top"]} className="px-4">
-          {/* Top Row */}
-          <View className="flex-row justify-between items-center pt-2 mb-4">
-            <Text className="text-sm text-white/70 font-medium">Home Page</Text>
+      {/* Welcome Card */}
+      <View className="bg-white px-4 py-4 border-b border-gray-100">
+        <View className="flex-row items-center">
+          <Image
+            source={{
+              uri: "https://api.dicebear.com/7.x/avataaars/png?seed=user123&backgroundColor=b6e3f4",
+            }}
+            className="w-14 h-14 rounded-full mr-3.5"
+          />
+          <View className="flex-1">
+            <Text className="text-lg font-semibold text-gray-900 mb-1">
+              Welcome Abc Defgh,
+            </Text>
+            <Text className="text-sm text-gray-500">
+              Let's build your career path!
+            </Text>
           </View>
-
-          {/* Welcome Card */}
-          <View className="flex-row items-center bg-white rounded-2xl p-4 shadow-lg">
-            <Image
-              source={{
-                uri: "https://api.dicebear.com/7.x/avataaars/png?seed=user123&backgroundColor=b6e3f4",
-              }}
-              className="w-14 h-14 rounded-full mr-3.5"
-            />
-            <View className="flex-1">
-              <Text className="text-lg font-semibold text-gray-900 mb-1">
-                Welcome Abc Defgh,
-              </Text>
-              <Text className="text-sm text-gray-500">
-                Let's build your career path!
-              </Text>
-            </View>
-          </View>
-        </SafeAreaView>
-      </LinearGradient>
+        </View>
+      </View>
 
       <ScrollView
         className="flex-1"
@@ -263,59 +313,51 @@ export default function HomeScreen() {
         </View>
 
         {/* Job Categories Section */}
-        <View
-          className={`mb-6 ${expandedSection === "companies" ? "mb-4" : ""}`}
-        >
+        <View className="mb-6">
           <View className="flex-row justify-between items-center mb-4">
             <Text className="text-xl font-bold text-gray-900">
               Job Categories
             </Text>
             <TouchableOpacity
               className="flex-row items-center gap-1"
-              onPress={() => toggleSection("categories")}
+              onPress={handleSeeAllCategories}
             >
               <Text className="text-sm text-gray-500 font-medium">
-                {expandedSection === "categories" ? "See less" : "See more"}
+                See more
               </Text>
-              {expandedSection === "categories" ? (
-                <ChevronDown size={16} color="#666" />
-              ) : (
-                <ChevronRight size={16} color="#666" />
-              )}
+              <ChevronRight size={16} color="#666" />
             </TouchableOpacity>
           </View>
 
-          <View className="flex-row flex-wrap gap-3">
-            {visibleCategories.map((category) => (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingRight: 16 }}
+          >
+            {jobCategories.map((category) => (
               <CategoryCard
                 key={category.id}
                 category={category}
-                onPress={() => handleCategoryPress(category.id)}
+                onPress={() => handleCategoryPress(category.id, category.name)}
               />
             ))}
-          </View>
+          </ScrollView>
         </View>
 
         {/* Trending Companies Section */}
-        <View
-          className={`mb-6 ${expandedSection === "categories" ? "mb-4" : ""}`}
-        >
+        <View className="mb-6">
           <View className="flex-row justify-between items-center mb-4">
             <Text className="text-xl font-bold text-gray-900">
               Trending Companies
             </Text>
             <TouchableOpacity
               className="flex-row items-center gap-1"
-              onPress={() => toggleSection("companies")}
+              onPress={handleSeeAllCompanies}
             >
               <Text className="text-sm text-gray-500 font-medium">
-                {expandedSection === "companies" ? "See less" : "See more"}
+                See more
               </Text>
-              {expandedSection === "companies" ? (
-                <ChevronDown size={16} color="#666" />
-              ) : (
-                <ChevronRight size={16} color="#666" />
-              )}
+              <ChevronRight size={16} color="#666" />
             </TouchableOpacity>
           </View>
 

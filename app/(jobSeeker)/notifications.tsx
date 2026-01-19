@@ -1,23 +1,13 @@
-import { LinearGradient } from "expo-linear-gradient";
 import {
-    ArrowLeft,
-    Bell,
-    Briefcase,
-    Heart,
-    MessageCircle,
-    Star,
-    UserPlus,
+  Bell,
+  Briefcase,
+  Heart,
+  MessageCircle,
+  Star,
+  UserPlus,
 } from "lucide-react-native";
-import React, { useState } from "react";
-import {
-    Image,
-    ScrollView,
-    StatusBar,
-    Text,
-    TouchableOpacity,
-    View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import React, { useCallback, useState } from "react";
+import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 // Notification data type
 interface Notification {
@@ -32,8 +22,8 @@ interface Notification {
   isRead: boolean;
 }
 
-// Sample notifications data
-const notifications: Notification[] = [
+// Initial notifications data
+const initialNotifications: Notification[] = [
   {
     id: "1",
     type: "like",
@@ -228,6 +218,26 @@ const NotificationItem = ({ notification, onPress }: NotificationItemProps) => (
 
 export default function NotificationsScreen() {
   const [activeTab, setActiveTab] = useState<"all" | "unread">("all");
+  const [notifications, setNotifications] =
+    useState<Notification[]>(initialNotifications);
+
+  // Mark a single notification as read
+  const handleMarkAsRead = useCallback((notificationId: string) => {
+    setNotifications((prev) =>
+      prev.map((notification) =>
+        notification.id === notificationId
+          ? { ...notification, isRead: true }
+          : notification,
+      ),
+    );
+  }, []);
+
+  // Mark all notifications as read
+  const handleMarkAllAsRead = useCallback(() => {
+    setNotifications((prev) =>
+      prev.map((notification) => ({ ...notification, isRead: true })),
+    );
+  }, []);
 
   const filteredNotifications =
     activeTab === "all"
@@ -237,27 +247,7 @@ export default function NotificationsScreen() {
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   return (
-    <View className="flex-1 bg-gray-100">
-      <StatusBar barStyle="light-content" backgroundColor="#8B2635" />
-
-      {/* Header with Gradient */}
-      <LinearGradient
-        colors={["#8B2635", "#7D1F2E", "#6B1A27"]}
-        className="pb-4"
-      >
-        <SafeAreaView edges={["top"]} className="px-4">
-          {/* Top Row */}
-          <View className="relative flex-row items-center pt-2 pb-1">
-            <TouchableOpacity className="p-2">
-              <ArrowLeft size={24} color="#fff" />
-            </TouchableOpacity>
-            <Text className="absolute left-0 right-0 text-center text-xl font-bold text-white">
-              Notifications
-            </Text>
-          </View>
-        </SafeAreaView>
-      </LinearGradient>
-
+    <View className="flex-1 bg-gray-50">
       {/* Tabs */}
       <View className="flex-row bg-white px-4 py-1 border-b border-gray-200">
         <TouchableOpacity
@@ -298,7 +288,10 @@ export default function NotificationsScreen() {
 
       {/* Mark all as read button */}
       {unreadCount > 0 && (
-        <TouchableOpacity className="bg-white py-3 px-4 border-b border-gray-200">
+        <TouchableOpacity
+          className="bg-white py-3 px-4 border-b border-gray-200"
+          onPress={handleMarkAllAsRead}
+        >
           <Text
             className="text-sm font-semibold text-right"
             style={{ color: "#8B2635" }}
@@ -323,7 +316,7 @@ export default function NotificationsScreen() {
           <NotificationItem
             key={notification.id}
             notification={notification}
-            onPress={() => {}}
+            onPress={() => handleMarkAsRead(notification.id)}
           />
         ))}
 
@@ -337,7 +330,7 @@ export default function NotificationsScreen() {
           <NotificationItem
             key={notification.id}
             notification={notification}
-            onPress={() => {}}
+            onPress={() => handleMarkAsRead(notification.id)}
           />
         ))}
 

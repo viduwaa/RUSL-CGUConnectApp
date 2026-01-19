@@ -1,21 +1,49 @@
-import { Tabs } from "expo-router";
-import React, { useEffect } from "react";
+import { Tabs, usePathname } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { View } from "react-native";
 
 import { HapticTab } from "@/components/haptic-tab";
+import { TopHeader } from "@/components/ui/top-header";
 import { Colors } from "@/constants/theme";
+import { mockNotifications, mockUser } from "@/data/mock-user";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import * as NavigationBar from "expo-navigation-bar";
 import {
-  BellDot,
-  Briefcase,
-  Home,
-  MessageSquareText,
-  Settings,
-} from "lucide-react-native";
+    NavigationVisibilityProvider,
+    useNavigationVisibility,
+} from "@/hooks/use-navigation-visibility";
+import * as NavigationBar from "expo-navigation-bar";
+import { Briefcase, Home, MessageSquareText } from "lucide-react-native";
 import { Platform } from "react-native";
 
-export default function TabLayout() {
+function TabLayoutContent() {
   const colorScheme = useColorScheme();
+  const pathname = usePathname();
+  const { isNavigationVisible } = useNavigationVisibility();
+  const [unreadCount, setUnreadCount] = useState(
+    mockNotifications.filter((n) => !n.isRead).length,
+  );
+
+  // Pages where top header and bottom tabs should be visible
+  const mainPages = [
+    "/",
+    "/index",
+    "/jobs",
+    "/messages",
+    "/notifications",
+    "/profile",
+  ];
+  const isMainPage = mainPages.includes(pathname);
+
+  // Hide navigation on detail/sub pages
+  const isDetailPage =
+    pathname.includes("job-details") ||
+    pathname.includes("all-categories") ||
+    pathname.includes("all-companies") ||
+    pathname.includes("category-jobs");
+
+  // Show navigation only on main pages and when context allows it
+  const shouldShowNavigation =
+    isMainPage && !isDetailPage && isNavigationVisible;
 
   useEffect(() => {
     if (Platform.OS === "android") {
@@ -29,55 +57,106 @@ export default function TabLayout() {
   }, [colorScheme]);
 
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarStyle: {
-          backgroundColor: Colors[colorScheme ?? "light"].background,
-          borderTopColor: colorScheme === "dark" ? "#333" : "#eee",
-        },
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Home",
-          tabBarIcon: ({ color }) => <Home size={28} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="jobs"
-        options={{
-          title: "Jobs",
-          tabBarIcon: ({ color }) => <Briefcase size={28} color={color} />,
-        }}
-      />
+    <View className="flex-1">
+      {/* Fixed Top Header - only show on main pages */}
+      {shouldShowNavigation && (
+        <TopHeader
+          userName={mockUser.name}
+          userAvatar={mockUser.avatar}
+          notificationCount={unreadCount}
+        />
+      )}
 
-      <Tabs.Screen
-        name="messages"
-        options={{
-          title: "Messages",
-          tabBarIcon: ({ color }) => (
-            <MessageSquareText size={28} color={color} />
-          ),
+      {/* Tab Navigator */}
+      <Tabs
+        screenOptions={{
+          tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+          headerShown: false,
+          tabBarButton: HapticTab,
+          tabBarStyle: shouldShowNavigation
+            ? {
+                backgroundColor: Colors[colorScheme ?? "light"].background,
+                borderTopColor: colorScheme === "dark" ? "#333" : "#eee",
+              }
+            : { display: "none" },
         }}
-      />
-      <Tabs.Screen
-        name="notifications"
-        options={{
-          title: "Notifications",
-          tabBarIcon: ({ color }) => <BellDot size={28} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: "Settings",
-          tabBarIcon: ({ color }) => <Settings size={28} color={color} />,
-        }}
-      />
-    </Tabs>
+      >
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: "Home",
+            tabBarIcon: ({ color }) => <Home size={28} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="jobs"
+          options={{
+            title: "Jobs",
+            tabBarIcon: ({ color }) => <Briefcase size={28} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="messages"
+          options={{
+            title: "Messages",
+            tabBarIcon: ({ color }) => (
+              <MessageSquareText size={28} color={color} />
+            ),
+          }}
+        />
+
+        {/* Hidden screens - not shown in tab bar */}
+        <Tabs.Screen
+          name="notifications"
+          options={{
+            href: null,
+            headerShown: false,
+          }}
+        />
+        <Tabs.Screen
+          name="job-details"
+          options={{
+            href: null,
+            headerShown: false,
+          }}
+        />
+        <Tabs.Screen
+          name="profile"
+          options={{
+            href: null,
+            headerShown: false,
+          }}
+        />
+        <Tabs.Screen
+          name="all-categories"
+          options={{
+            href: null,
+            headerShown: false,
+          }}
+        />
+        <Tabs.Screen
+          name="all-companies"
+          options={{
+            href: null,
+            headerShown: false,
+          }}
+        />
+        <Tabs.Screen
+          name="category-jobs"
+          options={{
+            href: null,
+            headerShown: false,
+          }}
+        />
+      </Tabs>
+    </View>
+  );
+}
+
+export default function TabLayout() {
+  return (
+    <NavigationVisibilityProvider>
+      <TabLayoutContent />
+    </NavigationVisibilityProvider>
   );
 }
