@@ -1,6 +1,4 @@
-import { LinearGradient } from "expo-linear-gradient";
 import {
-    ArrowLeft,
     Briefcase,
     Clock,
     Edit2,
@@ -11,17 +9,17 @@ import {
     Search,
     Trash2,
     Users,
+    X,
 } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
-    ScrollView,
-    StatusBar,
+    FlatList,
+    Pressable,
     Text,
     TextInput,
     TouchableOpacity,
-    View
+    View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 // Job data type for employers
 interface EmployerJob {
@@ -115,7 +113,7 @@ const JobCard = ({ job, onPress, onEdit, onDelete }: JobCardProps) => {
 
   return (
     <TouchableOpacity
-      className="bg-white rounded-2xl p-4 mb-3 shadow-sm"
+      className="bg-white rounded-2xl p-4 mb-3 shadow-sm border border-gray-100"
       onPress={onPress}
       activeOpacity={0.8}
     >
@@ -205,43 +203,83 @@ export default function EmployerJobsScreen() {
     return matchesSearch && matchesTab;
   });
 
+  // Clear search
+  const handleClearSearch = useCallback(() => {
+    setSearchQuery("");
+  }, []);
+
+  // Render job card
+  const renderJobCard = useCallback(
+    ({ item }: { item: EmployerJob }) => (
+      <JobCard
+        job={item}
+        onPress={() => {}}
+        onEdit={() => {}}
+        onDelete={() => {}}
+      />
+    ),
+    [],
+  );
+
+  // Key extractor
+  const keyExtractor = useCallback((item: EmployerJob) => item.id, []);
+
+  // Empty list component
+  const ListEmptyComponent = (
+    <View className="flex-1 justify-center items-center py-16">
+      <Briefcase size={48} color="#ccc" />
+      <Text className="text-base text-gray-400 mt-3">No jobs found</Text>
+    </View>
+  );
+
+  // Header component
+  const ListHeaderComponent = (
+    <View className="mb-2">
+      <Text className="text-sm text-gray-500">
+        {filteredJobs.length} {filteredJobs.length === 1 ? "job" : "jobs"} found
+      </Text>
+    </View>
+  );
+
   return (
-    <View className="flex-1 bg-gray-100">
-      <StatusBar barStyle="light-content" backgroundColor="#8B2635" />
+    <View className="flex-1 bg-gray-50">
+      {/* Search Header */}
+      <View className="bg-white px-4 py-3 border-b border-gray-100">
+        {/* Title */}
+        <Text className="text-xl font-bold text-gray-900 mb-3">
+          My Job Posts
+        </Text>
 
-      {/* Header with Gradient */}
-      <LinearGradient
-        colors={["#8B2635", "#7D1F2E", "#6B1A27"]}
-        className="pb-5"
-      >
-        <SafeAreaView edges={["top"]} className="px-4">
-          {/* Top Row */}
-          <View className="flex-row justify-between items-center pt-2 pb-4">
-            <TouchableOpacity className="p-2 -ml-2">
-              <ArrowLeft size={24} color="#fff" />
-            </TouchableOpacity>
-            <Text className="text-xl font-bold text-white">My Job Posts</Text>
-            <TouchableOpacity
-              className="w-10 h-10 rounded-full items-center justify-center"
-              style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
-            >
-              <Plus size={22} color="#fff" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Search Bar */}
-          <View className="flex-row items-center bg-white rounded-xl px-3.5 py-3 gap-2.5">
-            <Search size={20} color="#999" />
+        {/* Search Bar */}
+        <View className="flex-row items-center gap-3">
+          <View className="flex-1 flex-row items-center bg-gray-100 rounded-xl px-4 py-3">
+            <Search size={20} color="#9ca3af" />
             <TextInput
-              className="flex-1 text-base text-gray-800"
+              className="flex-1 text-base text-gray-800 ml-3"
               placeholder="Search your jobs..."
-              placeholderTextColor="#999"
+              placeholderTextColor="#9ca3af"
               value={searchQuery}
               onChangeText={setSearchQuery}
+              returnKeyType="search"
             />
+            {searchQuery.length > 0 && (
+              <Pressable onPress={handleClearSearch} className="p-1">
+                <X size={18} color="#9ca3af" />
+              </Pressable>
+            )}
           </View>
-        </SafeAreaView>
-      </LinearGradient>
+
+          {/* Add Job Button */}
+          <Pressable
+            className="bg-[#8B2635] p-3.5 rounded-xl"
+            style={({ pressed }) => ({
+              opacity: pressed ? 0.8 : 1,
+            })}
+          >
+            <Plus size={20} color="#fff" />
+          </Pressable>
+        </View>
+      </View>
 
       {/* Tabs */}
       <View className="flex-row bg-white px-4 py-1 border-b border-gray-200">
@@ -263,41 +301,22 @@ export default function EmployerJobsScreen() {
       </View>
 
       {/* Jobs List */}
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ padding: 16 }}
+      <FlatList
+        data={filteredJobs}
+        renderItem={renderJobCard}
+        keyExtractor={keyExtractor}
+        contentContainerStyle={{
+          padding: 16,
+          paddingBottom: 100,
+        }}
         showsVerticalScrollIndicator={false}
-      >
-        {filteredJobs.map((job) => (
-          <JobCard
-            key={job.id}
-            job={job}
-            onPress={() => {}}
-            onEdit={() => {}}
-            onDelete={() => {}}
-          />
-        ))}
-
-        {filteredJobs.length === 0 && (
-          <View className="flex-1 justify-center items-center py-16">
-            <Briefcase size={48} color="#ccc" />
-            <Text className="text-base text-gray-400 mt-3">No jobs found</Text>
-          </View>
-        )}
-
-        {/* Post New Job Button */}
-        <TouchableOpacity
-          className="flex-row items-center justify-center gap-2 py-4 rounded-xl mt-2"
-          style={{ backgroundColor: "#8B2635" }}
-        >
-          <Plus size={20} color="#fff" />
-          <Text className="text-white text-base font-semibold">
-            Post a New Job
-          </Text>
-        </TouchableOpacity>
-
-        <View className="h-5" />
-      </ScrollView>
+        ListHeaderComponent={ListHeaderComponent}
+        ListEmptyComponent={ListEmptyComponent}
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        initialNumToRender={6}
+      />
     </View>
   );
 }

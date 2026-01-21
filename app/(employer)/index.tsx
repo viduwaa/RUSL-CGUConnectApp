@@ -1,28 +1,27 @@
-import { LinearGradient } from "expo-linear-gradient";
+import { mockEmployer } from "@/data/mock-employer";
 import { useRouter } from "expo-router";
 import {
-  Briefcase,
-  CheckCircle,
-  ChevronRight,
-  Clock,
-  Eye,
-  Plus,
-  Search,
-  TrendingUp,
-  Users
+    Briefcase,
+    CheckCircle,
+    ChevronRight,
+    Clock,
+    Eye,
+    Plus,
+    Search,
+    TrendingUp,
+    Users,
 } from "lucide-react-native";
 import React, { useState } from "react";
 import {
-  Dimensions,
-  Image,
-  ScrollView,
-  StatusBar,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Dimensions,
+    Image,
+    ScrollView,
+    StatusBar,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = (width - 48 - 12) / 2;
@@ -134,7 +133,7 @@ interface JobPostCardProps {
 
 const JobPostCard = ({ job, onPress }: JobPostCardProps) => (
   <TouchableOpacity
-    className="bg-white rounded-2xl p-4 mb-3 shadow-sm"
+    className="bg-white rounded-2xl p-4 mb-3 shadow-sm border border-gray-100"
     onPress={onPress}
     activeOpacity={0.8}
   >
@@ -181,7 +180,7 @@ interface ApplicantCardProps {
 
 const ApplicantCard = ({ applicant, onPress }: ApplicantCardProps) => (
   <TouchableOpacity
-    className="bg-white rounded-2xl p-4 mr-3 shadow-sm items-center"
+    className="bg-white rounded-2xl p-4 mr-3 shadow-sm items-center border border-gray-100"
     style={{ width: 140 }}
     onPress={onPress}
     activeOpacity={0.8}
@@ -233,35 +232,26 @@ export default function EmployerHomeScreen() {
   };
 
   return (
-    <View className="flex-1 bg-gray-100">
+    <View className="flex-1 bg-gray-50">
       <StatusBar barStyle="light-content" backgroundColor="#8B2635" />
 
-      {/* Header with Gradient */}
-      <LinearGradient
-        colors={["#8B2635", "#7D1F2E", "#6B1A27"]}
-        className="pb-5"
-      >
-        <SafeAreaView edges={["top"]} className="px-4">
-
-          {/* Welcome Card */}
-          <View className="flex-row items-center bg-white rounded-2xl p-4 shadow-lg">
-            <Image
-              source={{
-                uri: "https://api.dicebear.com/7.x/initials/png?seed=COMP&backgroundColor=8B2635",
-              }}
-              className="w-14 h-14 rounded-xl mr-3.5"
-            />
-            <View className="flex-1">
-              <Text className="text-lg font-semibold text-gray-900 mb-1">
-                Welcome, Company Name
-              </Text>
-              <Text className="text-sm text-gray-500">
-                Find the best talent for your team!
-              </Text>
-            </View>
+      {/* Welcome Card */}
+      <View className="bg-white px-4 py-4 border-b border-gray-100">
+        <View className="flex-row items-center">
+          <Image
+            source={{ uri: mockEmployer.logo }}
+            className="w-14 h-14 rounded-xl mr-3.5"
+          />
+          <View className="flex-1">
+            <Text className="text-lg font-semibold text-gray-900 mb-1">
+              Welcome, {mockEmployer.companyName}
+            </Text>
+            <Text className="text-sm text-gray-500">
+              Find the best talent for your team!
+            </Text>
           </View>
-        </SafeAreaView>
-      </LinearGradient>
+        </View>
+      </View>
 
       <ScrollView
         className="flex-1"
@@ -300,7 +290,7 @@ export default function EmployerHomeScreen() {
         </View>
 
         {/* Stats Overview */}
-        <View className="bg-white rounded-2xl p-4 mb-6 shadow-sm">
+        <View className="bg-white rounded-2xl p-4 mb-6 shadow-sm border border-gray-100">
           <Text className="text-lg font-bold text-gray-900 mb-4">Overview</Text>
           <View className="flex-row justify-between">
             <View className="items-center flex-1">
