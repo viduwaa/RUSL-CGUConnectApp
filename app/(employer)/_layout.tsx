@@ -12,11 +12,7 @@ import {
     useNavigationVisibility,
 } from "@/hooks/use-navigation-visibility";
 import * as NavigationBar from "expo-navigation-bar";
-import {
-    Briefcase,
-    Home,
-    MessageSquareText
-} from "lucide-react-native";
+import { Briefcase, Home, MessageSquareText } from "lucide-react-native";
 import { Platform } from "react-native";
 
 function TabLayoutContent() {
@@ -111,6 +107,20 @@ function TabLayoutContent() {
         />
         <Tabs.Screen
           name="settings"
+          options={{
+            href: null,
+            headerShown: false,
+          }}
+        />
+        <Tabs.Screen
+          name="applicants"
+          options={{
+            href: null,
+            headerShown: false,
+          }}
+        />
+        <Tabs.Screen
+          name="analytics"
           options={{
             href: null,
             headerShown: false,

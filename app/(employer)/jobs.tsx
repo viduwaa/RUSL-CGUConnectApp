@@ -1,224 +1,305 @@
 import {
-    Briefcase,
-    Clock,
-    Edit2,
-    Eye,
-    MapPin,
-    MoreVertical,
-    Plus,
-    Search,
-    Trash2,
-    Users,
-    X,
-} from "lucide-react-native";
-import React, { useCallback, useState } from "react";
+  CloseJobConfirmationModal,
+  DeleteConfirmationModal,
+  EmployerJob,
+  EmployerJobCard,
+  EmployerJobFormData,
+  emptyJobTemplate,
+  JobDetailModal,
+  JobFormModal,
+  JobTabs,
+  JobTabType,
+  PauseJobConfirmationModal,
+  SuccessModal,
+} from "@/components/employer";
+import { mockEmployerJobs } from "@/data/mock-employer-jobs";
+import { Briefcase, Plus, Search, X } from "lucide-react-native";
+import React, { useCallback, useMemo, useState } from "react";
 import {
-    FlatList,
-    Pressable,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  FlatList,
+  Pressable,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 
-// Job data type for employers
-interface EmployerJob {
-  id: string;
-  title: string;
-  location: string;
-  type: string;
-  applicants: number;
-  views: number;
-  status: "active" | "paused" | "closed";
-  postedDate: string;
-}
-
-// Sample job data
-const myJobs: EmployerJob[] = [
-  {
-    id: "1",
-    title: "Software Engineer",
-    location: "Colombo, Sri Lanka",
-    type: "Full-time",
-    applicants: 24,
-    views: 156,
-    status: "active",
-    postedDate: "2 days ago",
-  },
-  {
-    id: "2",
-    title: "UI/UX Designer",
-    location: "Remote",
-    type: "Full-time",
-    applicants: 18,
-    views: 98,
-    status: "active",
-    postedDate: "5 days ago",
-  },
-  {
-    id: "3",
-    title: "Project Manager",
-    location: "Kandy, Sri Lanka",
-    type: "Contract",
-    applicants: 12,
-    views: 67,
-    status: "closed",
-    postedDate: "1 week ago",
-  },
-  {
-    id: "4",
-    title: "DevOps Engineer",
-    location: "Colombo, Sri Lanka",
-    type: "Full-time",
-    applicants: 8,
-    views: 45,
-    status: "paused",
-    postedDate: "2 weeks ago",
-  },
-  {
-    id: "5",
-    title: "Data Analyst",
-    location: "Remote",
-    type: "Part-time",
-    applicants: 15,
-    views: 89,
-    status: "active",
-    postedDate: "3 days ago",
-  },
-];
-
-// Job Card Component
-interface JobCardProps {
-  job: EmployerJob;
-  onPress: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
-}
-
-const JobCard = ({ job, onPress, onEdit, onDelete }: JobCardProps) => {
-  const [showMenu, setShowMenu] = useState(false);
-
-  const getStatusColor = () => {
-    switch (job.status) {
-      case "active":
-        return { bg: "bg-green-100", text: "text-green-600" };
-      case "paused":
-        return { bg: "bg-yellow-100", text: "text-yellow-600" };
-      case "closed":
-        return { bg: "bg-gray-100", text: "text-gray-500" };
-    }
-  };
-
-  const statusColors = getStatusColor();
-
-  return (
-    <TouchableOpacity
-      className="bg-white rounded-2xl p-4 mb-3 shadow-sm border border-gray-100"
-      onPress={onPress}
-      activeOpacity={0.8}
-    >
-      <View className="flex-row justify-between items-start mb-3">
-        <View className="flex-1 mr-2">
-          <Text className="text-base font-semibold text-gray-900 mb-1">
-            {job.title}
-          </Text>
-          <View className="flex-row items-center gap-2 flex-wrap">
-            <View className="flex-row items-center gap-1">
-              <MapPin size={12} color="#999" />
-              <Text className="text-xs text-gray-400">{job.location}</Text>
-            </View>
-            <View className="flex-row items-center gap-1">
-              <Briefcase size={12} color="#999" />
-              <Text className="text-xs text-gray-400">{job.type}</Text>
-            </View>
-          </View>
-        </View>
-        <View className="flex-row items-center gap-2">
-          <View className={`px-2 py-1 rounded-full ${statusColors.bg}`}>
-            <Text
-              className={`text-xs font-medium capitalize ${statusColors.text}`}
-            >
-              {job.status}
-            </Text>
-          </View>
-          <TouchableOpacity
-            className="p-1"
-            onPress={() => setShowMenu(!showMenu)}
-          >
-            <MoreVertical size={18} color="#666" />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <View className="flex-row items-center gap-4 mb-3">
-        <View className="flex-row items-center gap-1.5">
-          <Users size={14} color="#8B2635" />
-          <Text className="text-sm text-gray-600">
-            {job.applicants} applicants
-          </Text>
-        </View>
-        <View className="flex-row items-center gap-1.5">
-          <Eye size={14} color="#2196F3" />
-          <Text className="text-sm text-gray-600">{job.views} views</Text>
-        </View>
-        <View className="flex-row items-center gap-1.5">
-          <Clock size={14} color="#999" />
-          <Text className="text-sm text-gray-400">{job.postedDate}</Text>
-        </View>
-      </View>
-
-      {showMenu && (
-        <View className="flex-row gap-2 pt-2 border-t border-gray-100">
-          <TouchableOpacity
-            className="flex-1 flex-row items-center justify-center gap-2 py-2 rounded-lg bg-blue-50"
-            onPress={onEdit}
-          >
-            <Edit2 size={14} color="#2196F3" />
-            <Text className="text-sm font-medium text-blue-500">Edit</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className="flex-1 flex-row items-center justify-center gap-2 py-2 rounded-lg bg-red-50"
-            onPress={onDelete}
-          >
-            <Trash2 size={14} color="#E53935" />
-            <Text className="text-sm font-medium text-red-500">Delete</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </TouchableOpacity>
-  );
-};
-
 export default function EmployerJobsScreen() {
-  const [activeTab, setActiveTab] = useState<"all" | "active" | "closed">(
-    "all",
-  );
+  // Jobs state
+  const [jobs, setJobs] = useState<EmployerJob[]>(mockEmployerJobs);
+  const [activeTab, setActiveTab] = useState<JobTabType>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredJobs = myJobs.filter((job) => {
-    const matchesSearch = job.title
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    const matchesTab = activeTab === "all" || job.status === activeTab;
-    return matchesSearch && matchesTab;
+  // Modal visibility states
+  const [showJobModal, setShowJobModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showJobDetailModal, setShowJobDetailModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showCloseModal, setShowCloseModal] = useState(false);
+  const [showPauseModal, setShowPauseModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+
+  // Current job being edited/viewed/deleted
+  const [currentJobId, setCurrentJobId] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  // Get current job from jobs array to keep it in sync
+  const currentJob = useMemo(() => {
+    if (!currentJobId) return null;
+    return jobs.find((j) => j.id === currentJobId) || null;
+  }, [currentJobId, jobs]);
+
+  // Form state for add/edit
+  const [formData, setFormData] = useState<EmployerJobFormData>({
+    ...emptyJobTemplate,
   });
+
+  // Calculate job counts for tabs
+  const jobCounts = useMemo(
+    () => ({
+      all: jobs.length,
+      active: jobs.filter((j) => j.status === "active").length,
+      paused: jobs.filter((j) => j.status === "paused").length,
+      closed: jobs.filter((j) => j.status === "closed").length,
+    }),
+    [jobs],
+  );
+
+  // Filtered jobs based on search and tab
+  const filteredJobs = useMemo(() => {
+    return jobs.filter((job) => {
+      const matchesSearch = job.title
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+      const matchesTab = activeTab === "all" || job.status === activeTab;
+      return matchesSearch && matchesTab;
+    });
+  }, [jobs, searchQuery, activeTab]);
 
   // Clear search
   const handleClearSearch = useCallback(() => {
     setSearchQuery("");
   }, []);
 
+  // Open add job modal
+  const handleAddJob = useCallback(() => {
+    setFormData({ ...emptyJobTemplate });
+    setIsEditMode(false);
+    setShowJobModal(true);
+  }, []);
+
+  // Open edit job modal
+  const handleEditJob = useCallback((job: EmployerJob) => {
+    setCurrentJobId(job.id);
+    setFormData({
+      title: job.title,
+      company: job.company,
+      location: job.location,
+      contractType: job.contractType,
+      salary: job.salary || "",
+      postedDate: job.postedDate,
+      description: job.description,
+      requirements: [...job.requirements],
+      responsibilities: [...job.responsibilities],
+      companyInfo: job.companyInfo,
+      applicants: job.applicants,
+      views: job.views,
+      status: job.status,
+    });
+    setIsEditMode(true);
+    setShowJobModal(true);
+  }, []);
+
+  // Open delete confirmation modal
+  const handleDeletePrompt = useCallback((job: EmployerJob) => {
+    setCurrentJobId(job.id);
+    setShowDeleteModal(true);
+  }, []);
+
+  // Confirm delete job
+  const handleConfirmDelete = useCallback(() => {
+    if (currentJob) {
+      setJobs((prevJobs) => prevJobs.filter((job) => job.id !== currentJob.id));
+      setShowDeleteModal(false);
+      setCurrentJobId(null);
+      setSuccessMessage("Job deleted successfully!");
+      setShowSuccessModal(true);
+    }
+  }, [currentJob]);
+
+  // Open pause confirmation modal
+  const handlePausePrompt = useCallback((job: EmployerJob) => {
+    setCurrentJobId(job.id);
+    setShowPauseModal(true);
+  }, []);
+
+  // Confirm pause job
+  const handleConfirmPause = useCallback(() => {
+    if (currentJob) {
+      setJobs((prevJobs) =>
+        prevJobs.map((j) =>
+          j.id === currentJob.id ? { ...j, status: "paused" as const } : j,
+        ),
+      );
+      setShowPauseModal(false);
+      setShowJobDetailModal(false);
+      setCurrentJobId(null);
+      setSuccessMessage("Job paused successfully!");
+      setShowSuccessModal(true);
+    }
+  }, [currentJob]);
+
+  // Resume job (set to active)
+  const handleResumeJob = useCallback((job: EmployerJob) => {
+    setJobs((prevJobs) =>
+      prevJobs.map((j) =>
+        j.id === job.id ? { ...j, status: "active" as const } : j,
+      ),
+    );
+    setShowJobDetailModal(false);
+    setCurrentJobId(null);
+    setSuccessMessage(
+      job.status === "closed"
+        ? "Job reopened successfully!"
+        : "Job resumed successfully!",
+    );
+    setShowSuccessModal(true);
+  }, []);
+
+  // Open close job confirmation modal
+  const handleClosePrompt = useCallback((job: EmployerJob) => {
+    setCurrentJobId(job.id);
+    setShowCloseModal(true);
+  }, []);
+
+  // Confirm close job
+  const handleConfirmClose = useCallback(() => {
+    if (currentJob) {
+      setJobs((prevJobs) =>
+        prevJobs.map((j) =>
+          j.id === currentJob.id ? { ...j, status: "closed" as const } : j,
+        ),
+      );
+      setShowCloseModal(false);
+      setShowJobDetailModal(false);
+      setCurrentJobId(null);
+      setSuccessMessage("Job closed successfully!");
+      setShowSuccessModal(true);
+    }
+  }, [currentJob]);
+
+  // View job details
+  const handleViewJob = useCallback((job: EmployerJob) => {
+    setCurrentJobId(job.id);
+    setShowJobDetailModal(true);
+  }, []);
+
+  // Save job (add or edit)
+  const handleSaveJob = useCallback(() => {
+    if (
+      !formData.title.trim() ||
+      !formData.location.trim() ||
+      !formData.description.trim()
+    ) {
+      Alert.alert(
+        "Error",
+        "Please fill in all required fields (Title, Location, Description)",
+      );
+      return;
+    }
+
+    if (isEditMode && currentJob) {
+      // Update existing job
+      setJobs((prevJobs) =>
+        prevJobs.map((job) => {
+          if (job.id === currentJob.id) {
+            return {
+              ...job,
+              ...formData,
+            };
+          }
+          return job;
+        }),
+      );
+      setSuccessMessage("Job updated successfully!");
+    } else {
+      // Add new job
+      const newJob: EmployerJob = {
+        id: Date.now().toString(),
+        ...formData,
+      };
+      setJobs((prevJobs) => [newJob, ...prevJobs]);
+      setSuccessMessage("Job posted successfully!");
+    }
+
+    setShowJobModal(false);
+    setCurrentJobId(null);
+    setShowSuccessModal(true);
+  }, [formData, isEditMode, currentJob]);
+
+  // Handle form data change
+  const handleFormChange = useCallback((data: EmployerJobFormData) => {
+    setFormData(data);
+  }, []);
+
+  // Handle edit from detail modal
+  const handleEditFromDetail = useCallback(() => {
+    if (currentJob) {
+      setShowJobDetailModal(false);
+      handleEditJob(currentJob);
+    }
+  }, [currentJob, handleEditJob]);
+
+  // Handle delete from detail modal
+  const handleDeleteFromDetail = useCallback(() => {
+    if (currentJob) {
+      setShowJobDetailModal(false);
+      handleDeletePrompt(currentJob);
+    }
+  }, [currentJob, handleDeletePrompt]);
+
+  // Handle pause from detail modal
+  const handlePauseFromDetail = useCallback(() => {
+    if (currentJob) {
+      handlePausePrompt(currentJob);
+    }
+  }, [currentJob, handlePausePrompt]);
+
+  // Handle resume from detail modal
+  const handleResumeFromDetail = useCallback(() => {
+    if (currentJob) {
+      handleResumeJob(currentJob);
+    }
+  }, [currentJob, handleResumeJob]);
+
+  // Handle close from detail modal
+  const handleCloseFromDetail = useCallback(() => {
+    if (currentJob) {
+      handleClosePrompt(currentJob);
+    }
+  }, [currentJob, handleClosePrompt]);
+
   // Render job card
   const renderJobCard = useCallback(
     ({ item }: { item: EmployerJob }) => (
-      <JobCard
+      <EmployerJobCard
         job={item}
-        onPress={() => {}}
-        onEdit={() => {}}
-        onDelete={() => {}}
+        onPress={() => handleViewJob(item)}
+        onEdit={() => handleEditJob(item)}
+        onDelete={() => handleDeletePrompt(item)}
+        onPause={() => handlePausePrompt(item)}
+        onResume={() => handleResumeJob(item)}
+        onClose={() => handleClosePrompt(item)}
       />
     ),
-    [],
+    [
+      handleViewJob,
+      handleEditJob,
+      handleDeletePrompt,
+      handlePausePrompt,
+      handleResumeJob,
+      handleClosePrompt,
+    ],
   );
 
   // Key extractor
@@ -229,6 +310,12 @@ export default function EmployerJobsScreen() {
     <View className="flex-1 justify-center items-center py-16">
       <Briefcase size={48} color="#ccc" />
       <Text className="text-base text-gray-400 mt-3">No jobs found</Text>
+      <Pressable
+        onPress={handleAddJob}
+        className="mt-4 bg-[#8B2635] px-6 py-3 rounded-xl"
+      >
+        <Text className="text-white font-semibold">Post Your First Job</Text>
+      </Pressable>
     </View>
   );
 
@@ -275,6 +362,7 @@ export default function EmployerJobsScreen() {
             style={({ pressed }) => ({
               opacity: pressed ? 0.8 : 1,
             })}
+            onPress={handleAddJob}
           >
             <Plus size={20} color="#fff" />
           </Pressable>
@@ -282,23 +370,11 @@ export default function EmployerJobsScreen() {
       </View>
 
       {/* Tabs */}
-      <View className="flex-row bg-white px-4 py-1 border-b border-gray-200">
-        {(["all", "active", "closed"] as const).map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            className={`py-3.5 px-4 mr-2 ${activeTab === tab ? "border-b-[3px]" : ""}`}
-            style={activeTab === tab ? { borderBottomColor: "#8B2635" } : {}}
-            onPress={() => setActiveTab(tab)}
-          >
-            <Text
-              className={`text-[15px] font-medium capitalize ${activeTab === tab ? "font-semibold" : "text-gray-500"}`}
-              style={activeTab === tab ? { color: "#8B2635" } : {}}
-            >
-              {tab}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      <JobTabs
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        jobCounts={jobCounts}
+      />
 
       {/* Jobs List */}
       <FlatList
@@ -316,6 +392,59 @@ export default function EmployerJobsScreen() {
         maxToRenderPerBatch={10}
         windowSize={5}
         initialNumToRender={6}
+      />
+
+      {/* Add/Edit Job Modal */}
+      <JobFormModal
+        visible={showJobModal}
+        isEditMode={isEditMode}
+        formData={formData}
+        onClose={() => setShowJobModal(false)}
+        onSave={handleSaveJob}
+        onFormChange={handleFormChange}
+      />
+
+      {/* Job Detail Modal */}
+      <JobDetailModal
+        visible={showJobDetailModal}
+        job={currentJob}
+        onClose={() => setShowJobDetailModal(false)}
+        onEdit={handleEditFromDetail}
+        onDelete={handleDeleteFromDetail}
+        onPause={handlePauseFromDetail}
+        onResume={handleResumeFromDetail}
+        onCloseJob={handleCloseFromDetail}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        visible={showDeleteModal}
+        jobTitle={currentJob?.title}
+        onCancel={() => setShowDeleteModal(false)}
+        onConfirm={handleConfirmDelete}
+      />
+
+      {/* Pause Confirmation Modal */}
+      <PauseJobConfirmationModal
+        visible={showPauseModal}
+        jobTitle={currentJob?.title}
+        onCancel={() => setShowPauseModal(false)}
+        onConfirm={handleConfirmPause}
+      />
+
+      {/* Close Job Confirmation Modal */}
+      <CloseJobConfirmationModal
+        visible={showCloseModal}
+        jobTitle={currentJob?.title}
+        onCancel={() => setShowCloseModal(false)}
+        onConfirm={handleConfirmClose}
+      />
+
+      {/* Success Modal */}
+      <SuccessModal
+        visible={showSuccessModal}
+        message={successMessage}
+        onClose={() => setShowSuccessModal(false)}
       />
     </View>
   );
